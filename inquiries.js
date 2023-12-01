@@ -1,7 +1,4 @@
-const departments = ['Legal', 'Engineering'];
-const roles = ['sales','IT'];
-const managers = ['bob', 'joe'];
-const employees = ['irene', 'myself'];
+const {roles, managers, departments, employees} = require('./query.js');
 
 const nav = {
     type: 'list',
@@ -16,7 +13,6 @@ const nav = {
         'View All Departments',
         'Add Department',
         'Quit'],
-    pageSize: 8,
 };
 const addEmp = [{
     type: 'input',
