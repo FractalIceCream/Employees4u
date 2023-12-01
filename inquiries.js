@@ -1,4 +1,4 @@
-const {roles, managers, departments, employees} = require('./query.js');
+const { employees, managers, roles, departments } = require('./query.js');
 
 const nav = {
     type: 'list',
@@ -71,4 +71,4 @@ const addDepart = {
         message: 'What\'s the name of the department?',
     };
 
-module.exports = { nav, addEmp, updateEmp, addRole, addDepart, employees, managers, roles, departments }
+module.exports = { nav, addEmp, updateEmp, addRole, addDepart } 
