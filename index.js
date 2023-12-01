@@ -1,115 +1,85 @@
-const cb = require('./connection.js');
+const db = require('./connection.js');
 const inquirer = require('inquirer');
 const { nav, addEmp, updateEmp, addRole, addDepart } = require('./inquiries.js');
-const { db, viewEmp, viewRole, viewDepart } = require('./query.js');
+const { viewEmp, viewRole, viewDepart,
+        getEmpID, getManagerID, getRoleID, getDepartID, 
+        addNewEmployee, addNewRole, addNewDepart, updateEmpRole } = require('./query.js');
+
+function viewTable(viewQuery) {
+    db.query(viewQuery)
+        .then(([rows, fields]) => console.table(rows))
+        .then(() => init())
+}
 
 function addEmployee() {
-    inquirer
-        .prompt(addEmp)
+    inquirer.prompt(addEmp)
         .then(async (res) => {
-            const manager = res.addEmployeeManager.split(" ");
-            [rows, fields] = await cb.query(`SELECT id FROM employee WHERE first_name=? AND last_name=?`,manager,
-            (err,res) => err?console.log(err):res)
-            
-            cb.execute(`INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUE (?,?,1,?)`, 
-            [res.addEmployeeFirstName, res.addEmployeeLastName, rows[0].id])
-            .then(res => console.log(res));
+            const managerName = res.addEmployeeManager.split(" ");
+            const managerID = await getManagerID(managerName);
+            const roleID = await getRoleID(res.addEmployeeRole);
+            await addNewEmployee(res.addEmployeeFirstName, res.addEmployeeLastName, roleID, managerID);
         })
         .then(() => init());
 }
 function updateEmployee() {
-    inquirer
-    .prompt(updateEmp)
+    inquirer.prompt(updateEmp)
         .then(async (res) => {
             const employee = res.updateEmployee.split(" ");
-            [emp_id, fields] = await cb.query(`SELECT id FROM employee WHERE first_name=? AND last_name=?`,employee,
-            (err,res) => err?console.log(err):res);
-            
-            [r_id, fields] = await cb.query(`SELECT id FROM role WHERE title=?`, [res.updateEmployeeRole], (err, res) => err?console.log(err):res);
-            
-            cb.execute(`UPDATE employee SET role_id = ? WHERE id = ?`, 
-            [r_id[0].id, emp_id[0].id])
-            .then((res) => console.log(res));
+            const empID = await getEmpID(employee);
+            const roleID = await getRoleID(res.updateEmployeeRole);
+            await updateEmpRole(roleID, empID);
         })
         .then(() => init());
 }
 
 function addRoles() {
-    inquirer
-        .prompt(addRole)
+    inquirer.prompt(addRole)
         .then(async (res) => {
-
-
-            [rows, fields] = await cb.query(`SELECT id FROM department WHERE name=?`,res.addRoleDepartment,
-            (err,res) => err?console.log(err):res)
-            
-            cb.execute(`INSERT INTO role(title, salary, department_id) VALUE (?,?,?)`, 
-            [res.addRole, res.addRoleSalary, rows[0].id])
-            .then((res) => console.log(res));
+            const departID = await getDepartID(res.addRoleDepartment);
+            await addNewRole(res.addRole, res.addRoleSalary, departID);
         })
         .then(() => init());
 }
 
 function addDepartment() {
-    inquirer
-        .prompt(addDepart)
-        .then(async (res) => {
-            await cb.query(`INSERT INTO department(name) VALUE (?)`, 
-            [res.addDepartment])
-            .then((res) => console.log(res));
+    inquirer.prompt(addDepart)
+        .then((res) => {
+            addNewDepart(res.addDepartment);
         })
         .then(() => init());
 }
-async function init() {
-    inquirer
-    .prompt(nav)
-    .then(res => {
-        switch (res.userAction) {
-            case 'View All Employees':
-                cb.query(viewEmp)
-                    .then(([rows, fields]) => console.table(rows))
-                    .then(() => init())
-                break;
-            case 'Add employee':
-                console.log('addEmp');
-                addEmployee();
-                break;
-            case 'Update Employee Role':
-                console.log('updateEmp');
-                updateEmployee();
-                break;
-            case 'View All Roles':
-                cb.query(viewRole)
-                    .then(([rows, fields]) => console.table(rows))
-                    .then(() => init())
-                break;
-            case 'Add Role':
-                console.log('addRole');
-                addRoles();
-                break;
-            case 'View All Departments':
-                cb.query(viewDepart)
-                    .then(([rows, fields]) => console.table(rows))
-                    .then(() => init())
-                break;
-            case 'Add Department':
-                console.log('addDepart');
-                addDepartment();
-                break;
-            case 'Quit':
-                console.log('Quit');
-                // quit();
-                // cb.releaseConnection();
-                // console.log(cb);
-                cb.end();
-                db.end();
-                
-                break;
-            default:
-                break;
-        }
-        return;
-    }).then(console.log(''))
-    .catch(err => console.log(err));
+function init() {
+    inquirer.prompt(nav)
+        .then(res => {
+            switch (res.userAction) {
+                case 'View All Employees':
+                    viewTable(viewEmp);
+                    break;
+                case 'Add employee':
+                    addEmployee();
+                    break;
+                case 'Update Employee Role':
+                    updateEmployee();
+                    break;
+                case 'View All Roles':
+                    viewTable(viewRole);
+                    break;
+                case 'Add Role':
+                    addRoles();
+                    break;
+                case 'View All Departments':
+                    viewTable(viewDepart);
+                    break;
+                case 'Add Department':
+                    addDepartment();
+                    break;
+                case 'Quit':
+                    db.end();
+                    break;
+                default:
+                    break;
+            }
+        }).then(console.log(''))
+        .catch(err => console.log(err));
 }
 init();
