@@ -1,5 +1,6 @@
 const { employees, managers, roles, departments } = require('./query.js');
 
+//inquirer main prompts
 const nav = {
     type: 'list',
     name: 'userAction',
@@ -7,13 +8,17 @@ const nav = {
     choices: [
         'View All Employees',
         'Add employee',
-        'Update Employee Role',
+        'Update Employee\'s Role',
+        'Update Employee\'s Manager',
         'View All Roles',
         'Add Role',
         'View All Departments',
         'Add Department',
+        'Delete Entry',
         'Quit'],
 };
+
+//add new employee
 const addEmp = [{
     type: 'input',
     name: 'addEmployeeFirstName',
@@ -36,10 +41,12 @@ const addEmp = [{
     message: 'Who\'s the employee\'s manager?',
     choices: managers
 }];
-const updateEmp = [{
+
+//update employee's role
+const upEmpRole = [{
     type: 'list',
     name: 'updateEmployee',
-    message: 'Which employee\'s role do you want to change?',
+    message: 'Which employee\'s role do you want to update?',
     choices: employees
 },
 {
@@ -49,26 +56,50 @@ const updateEmp = [{
     choices: roles
 }];
 
-const addRole = [{
-        type: 'input',
-        name: 'addRole',
-        message: 'What\'s the name of the role?',
-    },
-    {
-        type: 'input',
-        name: 'addRoleSalary',
-        message: 'What\'s the salary of the role?',
-    },
-    {
-        type: 'list',
-        name: 'addRoleDepartment',
-        message: 'Which department does the role belong to?',
-        choices: departments
-    }];
-const addDepart = {
-        type: 'input',
-        name: 'addDepartment',
-        message: 'What\'s the name of the department?',
-    };
+//update employee's manager
+const upEmpManager = [{
+    type: 'list',
+    name: 'updateEmployee',
+    message: 'Which employee\'s manager do you want to update?',
+    choices: employees
+},
+{
+    type: 'list',
+    name: 'updateEmployeeManager',
+    message: 'Which manager do you want to assign the employee?',
+    choices: managers
+}];
 
-module.exports = { nav, addEmp, updateEmp, addRole, addDepart } 
+//add new role
+const addRole = [{
+    type: 'input',
+    name: 'addRole',
+    message: 'What\'s the name of the role?',
+},
+{
+    type: 'input',
+    name: 'addRoleSalary',
+    message: 'What\'s the salary of the role?',
+},
+{
+    type: 'list',
+    name: 'addRoleDepartment',
+    message: 'Which department does the role belong to?',
+    choices: departments
+}];
+
+//add new department
+const addDepart = {
+    type: 'input',
+    name: 'addDepartment',
+    message: 'What\'s the name of the department?',
+};
+
+const deleteOption = {
+    type: 'list',
+    name: 'table',
+    message: 'Choose table to delete entry from',
+    choices: ['employees', 'roles', 'departments']
+}
+
+module.exports = { nav, addEmp, upEmpRole, upEmpManager, addRole, addDepart, deleteOption } 
