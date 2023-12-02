@@ -1,25 +1,25 @@
 const db = require('./connection.js');
 
 //read queries for console.table
-const viewEmp =
-    `SELECT emp.id, emp.first_name, emp.last_name, role.title, dep.name, role.salary,
+const viewEmployee =
+    `SELECT emp.id, emp.first_name, emp.last_name, dep.name AS department, role.title,  role.salary,
         IF(emp.manager_id = m.id, CONCAT(m.first_name," ", m.last_name), NULL) as manager
     FROM employee emp
-    JOIN role
+    LEFT JOIN role
         ON emp.role_id = role.id
-    JOIN department dep
+    LEFT JOIN department dep
         ON role.department_id = dep.id
     LEFT JOIN employee m
         ON emp.manager_id = m.id
 `;
 const viewRole =
-    `SELECT role.id, role.title, dep.name, role.salary
+    `SELECT role.id, role.title, dep.name AS department, role.salary
     FROM role
-    JOIN department dep
+    LEFT JOIN department dep
         ON role.department_id = dep.id 
 `;
 
-const viewDepart =
+const viewDepartment =
     `SELECT * FROM department`;
 
 //read queries for inquirer's choices
@@ -76,32 +76,49 @@ const getDepartID = async function (name) {
 
 //create queries for associated tables
 const addNewEmployee = async function(first, last, roleID, managerID) {
-    db.query(`INSERT INTO employee(first_name, last_name, role_id, manager_id)
+    try {
+       await db.query(`INSERT INTO employee(first_name, last_name, role_id, manager_id)
                 VALUE(?,?,?,?)`, [first, last, roleID, managerID]);
     return console.log("Added new Employee");
+    } catch (err) {
+        console.log("Error Adding Employee : " + err.message);
+    }
 }
 
 const addNewRole = async function(title, salary, departID) {
-    db.query(`INSERT INTO role(title, salary, department_id)
+    try {
+        await db.query(`INSERT INTO role(title, salary, department_id)
                 VALUE (?,?,?)`, [title, salary, departID]);
     return console.log("Added New Role");
+    } catch (err) {
+        console.log("Error Adding Role : " + err.message);
+    }
 }
 
 const addNewDepart = async function(name) {
-    db.query(`INSERT INTO department(name) VALUE (?)`, name);
+    try {
+        await db.query(`INSERT INTO department(name) VALUE (?)`, name);
     return console.log("Add New Department");
+    } catch (err) {
+        console.log("Error Adding Department : " + err.message);
+    }
 }
 
 //update queries for employees
 
 const updateEmpRole = async function(roleID, empID) {
     db.query(`UPDATE employee SET role_id = ? WHERE id = ?`, [roleID, empID]);
-    return console.log("Updated Employee");
+    return console.log("Updated Employee's role");
+}
+
+const updateEmpManager = async function(managerID, empID) {
+    db.query(`UPDATE employee SET manager_id = ? WHERE id = ?`, [managerID, empID]);
+    return console.log("Updated Employee's manager");
 }
 
 module.exports = {
-    viewEmp, viewRole, viewDepart,
+    viewEmployee, viewRole, viewDepartment,
     employees, managers, roles, departments,
     getEmpID, getManagerID, getRoleID, getDepartID,
     addNewEmployee, addNewRole, addNewDepart,
-    updateEmpRole };
+    updateEmpRole, updateEmpManager };
